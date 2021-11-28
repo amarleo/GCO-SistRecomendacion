@@ -3,10 +3,22 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 
 using namespace std;
 
-void readFile(string filename) {
+void printMatrix(vector<vector<string>> matrix) {
+    for (long unsigned int i = 0; i < matrix.size(); i++) {
+        for (long unsigned int j = 0; j < matrix[i].size(); j++) {
+            //cout << j << " ";
+            cout << matrix[i][j] << " ";
+        }
+        //cout << i << " ";
+        cout << endl;
+    }
+}
+
+vector<vector<string>> readFile(string filename) {
     string lines;
     
     string source = "./files/" + filename;
@@ -32,54 +44,114 @@ void readFile(string filename) {
         cols++;
         
     }
-    rows = v_lines.size() / cols;
- 
 
+    rows = v_lines.size() / cols;
     matrix.resize(cols, vector<string>(rows));
-    cout << matrix.size() << endl;
 
     for (long unsigned int i = 0; i < matrix.size(); i++) {
-        for (long unsigned int j = 0; j < matrix[i].size(); j++) {
-            
+        for (long unsigned int j = 0; j < matrix[i].size(); j++) {            
             matrix[i][j] = (v_lines[(i * rows) + j]);
         }
-        //cout << i << " ";
-        //std::cout << endl;
     }
 
-    cout << matrix.size() << endl;
-    for (long unsigned int i = 0; i < matrix.size(); i++) {
-            for (long unsigned int j = 0; j < matrix[i].size(); j++) {
-                //cout << j << " ";
-                cout << matrix[i][j] << " ";
-            }
-            //cout << i << " ";
-            cout << endl;
-        }
-
-
     file.close();
+    return matrix;
 }
 
 
+void correlacionPearson(vector<vector<string>> matrix, int neighbours) {
+    vector<string> u, v;
+    vector<int> usuario;
+    int contador_else = 0;
+    int sumU = 0, sumV = 0, sumUV = 0;
+    int squareSumU = 0, squareSumV = 0, contador = 0, index = 1;
 
-void arguments(int argc, char **argv) {
+    //     for(int i = 0; i < u.size(); i++) {
+    //         cout << u[i] << endl;
+    // }
+
+    for (long unsigned int i = 0; i < matrix.size(); i++) {
+        for (long unsigned int j = 0; j < matrix[i].size(); j++) {   
+            if (matrix[i][j] == "-") {
+                usuario.push_back(i);
+                cout << i;
+            }
+        }
+    }
+    for (int k = 0; k < usuario.size(); k++) {
+        
+        u = matrix[usuario[k]];
+
+            if ((k + neighbours) < matrix.size()) {
+                v = matrix[k + neighbours];
+            } else {
+                v = matrix[contador_else];
+                contador_else++;
+                cout << " "<<contador_else << " " << endl;
+            }
+            
+            for(int i = 0; i < matrix.size(); i++) {
+
+                if ((u[i] != "-") && (v[i]) != "-") {
+
+                    sumU = sumU + stoi(u[i]);
+                    sumV = sumV + stoi(v[i]);
+                    sumUV = sumUV + stoi(u[i]) * stoi(v[i]);
+
+                    squareSumU = squareSumU + stoi(u[i]) * stoi(u[i]);
+                    squareSumV = squareSumV + stoi(v[i]) * stoi(v[i]);
+                    contador++;
+                }
+            }
+            float correlacion = (float)(contador * sumUV - sumU * sumV) / sqrt((contador * squareSumU - sumU * sumU) * (contador * squareSumV - sumV * sumV));
+            cout << "sim(Person" << neighbours - 1 << ", Person" << k + neighbours  << ")= "<< correlacion << endl;
+            index++;
+    }
+
+    
+
+
+}
+
+int main(int argc, char** argv){
+
+    int neighbours;
+    vector<vector<string>> matrix;
     for (int i = 0; i < argc; i++) {
         std::string aux = argv[i];
         if (aux == "-f") {
             string filename = argv[i+1];
-            //cout << filename << endl;
-            readFile(filename);
+            matrix = readFile(filename);
+
         } else if (aux == "-n") {
-            int neighbours = atoi(argv[i+1]);
-            //cout << neighbours << endl;
+            neighbours = atoi(argv[i+1]);
         } 
     }
 
-    
-}
 
 
-int main(int argc, char** argv){
-    arguments(argc, argv);
+    unsigned int metric;
+    unsigned int prediction;
+    cout << "Introduzca el número que referencia a la métrica deseada:\n1. Correlación de Pearson\n2. Distancia coseno\n3. Distancia Euclídea\n -> ";
+    cin >> metric;
+
+    switch(metric) {
+        case 1: 
+         for (int i = 1; i <= neighbours; i++) {
+             correlacionPearson(matrix, i);
+         }
+        
+
+        break;
+        case 2: 
+
+        break;
+        case 3:
+        break;
+
+        default: 
+            cout << "ERROR: Se ha introducido un valor erróneo.";
+        break;
+    }
+
 }
